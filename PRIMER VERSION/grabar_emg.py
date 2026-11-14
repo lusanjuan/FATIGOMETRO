@@ -1,14 +1,38 @@
-"""Graba la señal cruda de EMG que manda la ESP32-C3 por BLE y la guarda en un CSV.
+r"""Graba la señal cruda de EMG que manda la ESP32-C3 por BLE y la guarda en un CSV.
 
-Uso:
-    pip install bleak matplotlib
-    python grabar_emg.py salida.csv 60      # graba 60 segundos
+PASOS PREVIOS (una sola vez):
+    1. Abrir una terminal (PowerShell) en la carpeta APPBLE.
+    2. Crear el entorno virtual (si todavia no existe la carpeta .venv):
+           python -m venv .venv
+    3. Activarlo:
+           .venv\Scripts\Activate.ps1
+       (si PowerShell no deja, correr antes:
+           Set-ExecutionPolicy -Scope CurrentUser RemoteSigned)
+    4. Instalar las dependencias:
+           pip install -r "PRIMER VERSION\requirements.txt"
 
-Al terminar muestra un grafico de la señal grabada.
+PARA CORRERLO:
+    1. Prender el Bluetooth de la compu y la ESP32-C3 ("MyoSignals").
+       (opcional: correr antes escanear_ble.py para confirmar que se ve)
+    2. Con el entorno virtual activado, entrar a la carpeta del script:
+           cd "PRIMER VERSION"
+    3. Ejecutar indicando nombre del archivo y duracion en segundos:
+           python grabar_emg.py prueba4.csv 60      # graba 60 segundos
+       Sin argumentos usa "emg.csv" y 30 segundos:
+           python grabar_emg.py
+    4. Esperar a que conecte y termine de grabar. Al final informa cuantos
+       paquetes llegaron y cuantos se perdieron.
+    5. Se abre una ventana con el grafico de la señal; cerrarla para terminar.
+
+SALIDA:
+    El CSV se guarda siempre en la carpeta "outputs" (junto a este script),
+    con columnas: muestra, t_s, mV.
+    Para guardar el grafico como PNG, usar despues graficar_csv.py.
 """
 
 import asyncio #libreria que sirve para programas que esperen cosas sin quedarse bloqueados
 import csv
+import os
 import struct
 import sys
 from bleak import BleakClient, BleakScanner
@@ -17,6 +41,9 @@ DEVICE_NAME="MyoSignals"
 EMG_UUID = "8d1f0002-6c3a-4b8e-9a2e-3f1b2c4d5e60"
 FS=2000
 BLOCK= 100 #muestras x paquete
+
+CARPETA_SCRIPT = os.path.dirname(os.path.abspath(__file__))
+CARPETA_OUTPUTS = os.path.join(CARPETA_SCRIPT, "outputs")
 
 
 async def grabar(path,duracion):
@@ -91,7 +118,9 @@ async def grabar(path,duracion):
 
 
 def main():
-    path = sys.argv[1] if len(sys.argv) > 1 else "emg.csv"
+    nombre = sys.argv[1] if len(sys.argv) > 1 else "emg.csv"
+    os.makedirs(CARPETA_OUTPUTS, exist_ok=True)
+    path = os.path.join(CARPETA_OUTPUTS, os.path.basename(nombre))
     duracion = float(sys.argv[2]) if len(sys.argv) > 2 else 30
     res = asyncio.run(grabar(path, duracion))
     if not res or not res[0]:
