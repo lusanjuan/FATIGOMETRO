@@ -1,0 +1,1 @@
+La carpeta PRIMER VERSIÓN tiene unos archivos py que le pedimos a claude para empezar a ver una señal. No los analizamos en profundidad pero funcionan. La idea es crear otra carpeta con cosas que entendamos pero lo dejo pq al menos funciono!!!
