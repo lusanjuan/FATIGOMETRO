@@ -1,8 +1,8 @@
 # Tomar muestras de EMG y marcar fatiga
 
-Esta carpeta es una versión independiente para registrar la señal de la ESP32
-por Bluetooth, verla mientras se recibe y marcar cuándo aparece la fatiga.
-No modifica los archivos de `PRIMER VERSION`.
+Esta carpeta contiene una interfaz para registrar la señal de la ESP32 por
+Bluetooth, verla mientras se recibe y marcar cuándo aparece la fatiga. No
+modifica los archivos de `PRIMER VERSION`.
 
 ## Preparación
 
@@ -22,44 +22,57 @@ No modifica los archivos de `PRIMER VERSION`.
    pip install -r "TOMAR MUESTRAS\requirements.txt"
    ```
 
-## Registrar
+## Abrir la interfaz
 
-Desde `APPBLE`, con la ESP32 encendida y Bluetooth habilitado:
-
-```powershell
-python "TOMAR MUESTRAS\grabar_emg.py" 60
-```
-
-Para ver la ventana y probar **Marcar fatiga** sin una ESP32, ejecutar:
+Desde `APPBLE`, con el entorno virtual activado, ejecutar:
 
 ```powershell
-python "TOMAR MUESTRAS\grabar_emg.py" 30 --demo
+python "TOMAR MUESTRAS\grabar_emg.py"
 ```
 
-La señal es simulada y los archivos resultantes llevan el prefijo `demo_`;
-no representan una medición real.
+En la ventana:
 
-El número indica la duración en segundos; si se omite, se graban 30 segundos.
-Se abre un gráfico que se actualiza mientras llegan las muestras. Cuando la
-persona sienta fatiga, debe hacer clic en **Marcar fatiga**. Se pueden marcar
-varios momentos. Cerrar la ventana detiene una grabación que siga en curso.
+1. Escribir el nombre o apodo de la persona.
+2. Elegir **Femenino** o **Masculino**.
+3. Indicar la duración en segundos y la fuente de señal.
+4. Hacer clic en **Iniciar captura**.
+5. Durante la lectura, hacer clic en **Marcar fatiga** cada vez que corresponda.
+   **Detener y guardar** termina la lectura antes del tiempo indicado.
 
-Al cerrar la ventana, se guardan:
+Al terminar, se guardan automáticamente:
 
-- Un CSV en `TOMAR MUESTRAS\outputs`, con `muestra`, `t_s`, `mV` y `fatiga`.
-  La columna `fatiga` vale `1` en las muestras marcadas y `0` en las demás.
+- Un CSV en `TOMAR MUESTRAS\outputs`.
 - Un PNG en `TOMAR MUESTRAS\graficos`, con una línea roja por cada marca.
 
-El gráfico en vivo muestra los últimos cinco segundos para que la señal se
-pueda observar con detalle. El PNG final muestra el registro completo.
+El nombre de archivo contiene el nombre o apodo, el sexo y la fecha, por
+ejemplo `ana_perez_femenino_20261116_164500.csv`. Los nombres se limpian para
+formar un nombre de archivo válido; el CSV conserva el nombre ingresado. Para
+la demostración se antepone `demo_`.
 
-## Ver un CSV guardado
+El CSV incluye las columnas `usuario`, `sexo`, `modo`, `muestra`, `t_s`, `mV`
+y `fatiga`. Así se pueden filtrar participantes y sexo directamente al
+analizar los datos. `fatiga` vale `1` en las muestras marcadas y `0` en las
+demás. Los datos se pueden revisar con una hoja de cálculo o con Python.
+
+El gráfico en vivo muestra los últimos cinco segundos. Después de guardar, se
+puede cambiar el participante y empezar otra captura sin cerrar la interfaz.
+
+## Probar sin ESP32
 
 ```powershell
-python "TOMAR MUESTRAS\graficar_csv.py" "TOMAR MUESTRAS\outputs\muestra.csv"
+python "TOMAR MUESTRAS\grabar_emg.py" --demo
 ```
 
-El botón asocia la marca con la última muestra recibida y disponible en el
-gráfico. La ESP32 transmite bloques de 100 muestras (50 ms a 2000 Hz), por lo
-que ese es el límite práctico de sincronización de la marca con la señal; el
-firmware actual no envía la hora individual de cada muestra.
+La interfaz abre con **Demostración (sin ESP32)** seleccionada. La señal es
+simulada y no representa una medición real. También se puede ingresar una
+duración inicial, por ejemplo `python "TOMAR MUESTRAS\grabar_emg.py" 60`.
+
+## Graficar un CSV guardado
+
+```powershell
+python "TOMAR MUESTRAS\graficar_csv.py" "TOMAR MUESTRAS\outputs\ana_perez_femenino_20261116_164500.csv"
+```
+
+La marca se asocia a la última muestra recibida. La ESP32 transmite bloques
+de 100 muestras (50 ms a 2000 Hz), por lo que ese es el límite práctico de
+sincronización con el firmware actual.
